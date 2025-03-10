@@ -25,7 +25,6 @@ class DynamixelRobot(Robot):
             FakeDynamixelDriver,
         )
 
-        print(f"attempting to connect to port: {port}")
         self.gripper_open_close: Optional[Tuple[float, float]]
         if gripper_config is not None:
             assert joint_offsets is not None
