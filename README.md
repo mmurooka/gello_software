@@ -1,3 +1,6 @@
+**Main differences from original repository:**
+- Use multiprocessing instead of threading to obtain joint angles in DynamixelDriver. This avoids the problem that the main thread slows down due to GIL.
+
 # GELLO
 This is the central repo that holds the all the software for GELLO. See the website for the paper and other resources for GELLO https://wuphilipp.github.io/gello_site/
 See the GELLO hardware repo for the STL files and hardware instructions for building your own GELLO https://github.com/wuphilipp/gello_mechanical

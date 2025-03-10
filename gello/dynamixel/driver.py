@@ -1,5 +1,5 @@
 import time
-from threading import Event, Lock, Thread
+import multiprocessing
 from typing import Protocol, Sequence
 
 import numpy as np
@@ -102,8 +102,9 @@ class DynamixelDriver(DynamixelDriverProtocol):
             baudrate (int): The baudrate for communication.
         """
         self._ids = ids
-        self._joint_angles = None
-        self._lock = Lock()
+        self.manager = multiprocessing.Manager()
+        self._joint_angles = self.manager.list([0] * len(ids))
+        self._lock = multiprocessing.Lock()
 
         # Initialize the port handler, packet handler, and group sync read/write
         self._portHandler = PortHandler(port)
@@ -142,8 +143,8 @@ class DynamixelDriver(DynamixelDriverProtocol):
         except Exception as e:
             print(f"port: {port}, {e}")
 
-        self._stop_thread = Event()
-        self._start_reading_thread()
+        self._stop_event = multiprocessing.Event()
+        self._start_reading_process()
 
     def set_joints(self, joint_angles: Sequence[float]):
         if len(joint_angles) != len(self._ids):
@@ -201,14 +202,14 @@ class DynamixelDriver(DynamixelDriverProtocol):
 
         self._torque_enabled = enable
 
-    def _start_reading_thread(self):
-        self._reading_thread = Thread(target=self._read_joint_angles)
-        self._reading_thread.daemon = True
-        self._reading_thread.start()
+    def _start_reading_process(self):
+        self._reading_process = multiprocessing.Process(target=self._read_joint_angles)
+        self._reading_process.daemon = True
+        self._reading_process.start()
 
     def _read_joint_angles(self):
         # Continuously read joint angles and update the joint_angles array
-        while not self._stop_thread.is_set():
+        while not self._stop_event.is_set():
             time.sleep(0.001)
             with self._lock:
                 _joint_angles = np.zeros(len(self._ids), dtype=int)
@@ -229,20 +230,22 @@ class DynamixelDriver(DynamixelDriverProtocol):
                         raise RuntimeError(
                             f"Failed to get joint angles for Dynamixel with ID {dxl_id}"
                         )
-                self._joint_angles = _joint_angles
+                self._joint_angles[:] = _joint_angles
             # self._groupSyncRead.clearParam() # TODO what does this do? should i add it
 
     def get_joints(self) -> np.ndarray:
         # Return a copy of the joint_angles array to avoid race conditions
-        while self._joint_angles is None:
-            time.sleep(0.1)
         # with self._lock:
-        _j = self._joint_angles.copy()
+        _j = np.array(self._joint_angles)
+        while np.all(_j == 0):
+            time.sleep(0.1)
+            _j = np.array(self._joint_angles)
         return _j / 2048.0 * np.pi
 
     def close(self):
-        self._stop_thread.set()
-        self._reading_thread.join()
+        self._stop_event.set()
+        self._reading_process.terminate()
+        self._reading_process.join()
         self._portHandler.closePort()
 
 
