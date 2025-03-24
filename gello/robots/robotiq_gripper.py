@@ -247,17 +247,17 @@ class RobotiqGripper:
         """
         # first try to open in case we are holding an object
         (position, status) = self.move_and_wait_for_pos(self.get_open_position(), 64, 1)
-        if RobotiqGripper.ObjectStatus(status) != RobotiqGripper.ObjectStatus.AT_DEST:
-            raise RuntimeError(f"Calibration failed opening to start: {str(status)}")
+        # if RobotiqGripper.ObjectStatus(status) != RobotiqGripper.ObjectStatus.AT_DEST:
+        #     raise RuntimeError(f"Calibration failed opening to start: {str(status)}")
 
         # try to close as far as possible, and record the number
         (position, status) = self.move_and_wait_for_pos(
             self.get_closed_position(), 64, 1
         )
-        if RobotiqGripper.ObjectStatus(status) != RobotiqGripper.ObjectStatus.AT_DEST:
-            raise RuntimeError(
-                f"Calibration failed because of an object: {str(status)}"
-            )
+        # if RobotiqGripper.ObjectStatus(status) != RobotiqGripper.ObjectStatus.AT_DEST:
+        #     raise RuntimeError(
+        #         f"Calibration failed because of an object: {str(status)}"
+        #     )
         assert position <= self._max_position
         self._max_position = position
 
