@@ -252,7 +252,7 @@ class RobotiqGripper:
 
         # try to close as far as possible, and record the number
         (position, status) = self.move_and_wait_for_pos(
-            self.get_closed_position(), 64, 1
+            self.get_closed_position(), 32, 1
         )
         # if RobotiqGripper.ObjectStatus(status) != RobotiqGripper.ObjectStatus.AT_DEST:
         #     raise RuntimeError(
