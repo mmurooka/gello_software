@@ -134,3 +134,6 @@ class DynamixelRobot(Robot):
 
     def get_observations(self) -> Dict[str, np.ndarray]:
         return {"joint_state": self.get_joint_state()}
+
+    def close(self):
+        self._driver.close()

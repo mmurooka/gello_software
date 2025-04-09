@@ -137,3 +137,6 @@ class GelloAgent(Agent):
         else:
             self._robot.set_torque_mode(False)
             return dyna_joints
+
+    def close(self):
+        self._robot.close()
